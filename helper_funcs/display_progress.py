@@ -90,3 +90,5 @@ def TimeFormatter(milliseconds: int) -> str:
         ((str(seconds) + "s, ") if seconds else "") + \
         ((str(milliseconds) + "ms, ") if milliseconds else "")
     return tmp[:-2]
+
+  
