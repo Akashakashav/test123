@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 import os
 import time
-import random
+
 # the secret configuration specific things
 if bool(os.environ.get("WEBHOOK", False)):
     from sample_config import Config
@@ -23,7 +23,7 @@ from translation import Translation
 import pyrogram
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 from pyrogram import Client, Filters
-from helper_funcs.help_Nekmo_ffmpeg import take_screen_shot
+
 from helper_funcs.chat_base import TRChatBase
 from helper_funcs.display_progress import progress_for_pyrogram
 
@@ -33,8 +33,8 @@ from hachoir.parser import createParser
 from PIL import Image
 
 
-@pyrogram.Client.on_message(pyrogram.Filters.command(["rename_video"]))
-async def rename_video(bot, update):
+@pyrogram.Client.on_message(pyrogram.Filters.command(["rename"]))
+async def rename_doc(bot, update):
     if update.from_user.id in Config.BANNED_USERS:
         await bot.delete_messages(
             chat_id=update.chat.id,
@@ -55,7 +55,7 @@ async def rename_video(bot, update):
             return
         description = Translation.CUSTOM_CAPTION_UL_FILE
         download_location = Config.DOWNLOAD_LOCATION + "/"
-        b = await bot.send_message(
+        a = await bot.send_message(
             chat_id=update.chat.id,
             text=Translation.DOWNLOAD_START,
             reply_to_message_id=update.message_id
@@ -67,7 +67,7 @@ async def rename_video(bot, update):
             progress=progress_for_pyrogram,
             progress_args=(
                 Translation.DOWNLOAD_START,
-                b,
+                a,
                 c_time
             )
         )
@@ -76,7 +76,7 @@ async def rename_video(bot, update):
                 await bot.edit_message_text(
                     text=Translation.SAVED_RECVD_DOC_FILE,
                     chat_id=update.chat.id,
-                    message_id=b.message_id
+                    message_id=a.message_id
                 )
             except:
                 pass
@@ -85,24 +85,12 @@ async def rename_video(bot, update):
             await bot.edit_message_text(
                 text=Translation.UPLOAD_START,
                 chat_id=update.chat.id,
-                message_id=b.message_id
+                message_id=a.message_id
                 )
             logger.info(the_real_download_location)
-            width = 0
-            height = 0
-            duration = 0
-            metadata = extractMetadata(createParser(new_file_name))
-            try:
-             if metadata.has("duration"):
-                duration = metadata.get('duration').seconds
-            except:
-              pass
             thumb_image_path = Config.DOWNLOAD_LOCATION + "/" + str(update.from_user.id) + ".jpg"
             if not os.path.exists(thumb_image_path):
-               try:
-                    thumb_image_path = await take_screen_shot(new_file_name, os.path.dirname(new_file_name), random.randint(0, duration - 1))
-               except:
-                    thumb_image_path = None
+                thumb_image_path = None
             else:
                 width = 0
                 height = 0
@@ -122,10 +110,9 @@ async def rename_video(bot, update):
                 img.save(thumb_image_path, "JPEG")
                 # https://pillow.readthedocs.io/en/3.1.x/reference/Image.html#create-thumbnails
             c_time = time.time()
-            await bot.send_video(
+            await bot.send_document(
                 chat_id=update.chat.id,
-                video=new_file_name,
-                duration=duration,
+                document=new_file_name,
                 thumb=thumb_image_path,
                 caption=description,
                 # reply_markup=reply_markup,
@@ -133,7 +120,7 @@ async def rename_video(bot, update):
                 progress=progress_for_pyrogram,
                 progress_args=(
                     Translation.UPLOAD_START,
-                    b, 
+                    a, 
                     c_time
                 )
             )
@@ -145,7 +132,7 @@ async def rename_video(bot, update):
             await bot.edit_message_text(
                 text=Translation.AFTER_SUCCESSFUL_UPLOAD_MSG,
                 chat_id=update.chat.id,
-                message_id=b.message_id,
+                message_id=a.message_id,
                 disable_web_page_preview=True
             )
     else:
